@@ -16,30 +16,25 @@ AUDIENCES = [
     "Recruiters",
     "General Audience",
 ]
-DEFAULT_MODEL = "gemini-3.8-flash"
 
 
 def get_api_key() -> str | None:
-    """Look for the Gemini key in environment variables first, then Streamlit secrets.
+    """Look for the Groq key in environment variables first, then Streamlit secrets.
 
     The key is never printed or shown in the UI.
     """
-    key = os.getenv("GEMINI_API_KEY")
+    key = os.getenv("GROQ_API_KEY")
     if key and key.strip() and key.strip() != "your_api_key_here":
         return key.strip()
     try:
         import streamlit as st
 
-        secret = st.secrets.get("GEMINI_API_KEY")
+        secret = st.secrets.get("GROQ_API_KEY")
         if secret:
             return str(secret).strip()
     except Exception:
         pass
     return None
-
-
-def get_model_name() -> str:
-    return os.getenv("GEMINI_MODEL", DEFAULT_MODEL)
 
 
 def human_size(num_bytes: int) -> str:

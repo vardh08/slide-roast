@@ -1,26 +1,28 @@
-import sys
+﻿"""Opt-in live judge check for a PDF you intend to send to Groq."""
+from argparse import ArgumentParser
+from pathlib import Path
+
+from prompts.judges import JUDGES
+from services.groq_service import GroqError, run_judge
 from services.pdf_service import extract_slides
-from services.gemini_service import run_all_judges
 
-pdf = extract_slides(open(sys.argv[1], "rb").read())
 
-# Show the shape of the result so we can confirm it matches what we expect
-print("PDF result keys:", list(pdf.keys()))
+def main():
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument("pdf", type=Path)
+    parser.add_argument("--judge", choices=JUDGES, default="professor")
+    args = parser.parse_args()
+    result = extract_slides(args.pdf.read_bytes())
+    if not result["ok"]:
+        parser.error(result["error"])
+    try:
+        review = run_judge(args.judge, args.pdf.stem, "", "Hackathon Judges", result["slides"])
+    except GroqError as exc:
+        raise SystemExit(exc.user_message) from None
+    print(f"{JUDGES[args.judge]['name']}: {review['overall_score']} / 100")
+    print(review["verdict"])
+    print("Category scores:", review["category_scores"])
 
-if not pdf.get("ok", True):
-    sys.exit("PDF error: " + str(pdf.get("error")))
 
-slides = pdf["slides"]
-print("Slides extracted:", len(slides))
-
-results = run_all_judges("Test Project", "", "Hackathon Judges", slides)
-for key, r in results.items():
-    print("=" * 60, key.upper())
-    if r["ok"]:
-        d = r["data"]
-        print("Score:", d["overall_score"])
-        print("Verdict:", d["verdict"])
-        print("Categories:", d["category_scores"])
-        print("Weaknesses:", len(d["weaknesses"]), "| Questions:", len(d["judge_questions"]))
-    else:
-        print("FAILED:", r["error"])
+if __name__ == "__main__":
+    main()

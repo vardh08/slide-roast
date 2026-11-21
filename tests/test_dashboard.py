@@ -4,8 +4,8 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
-from services import gemini_service, report_service
-from services.gemini_service import GeminiError
+from services import groq_service, report_service
+from services.groq_service import GroqError
 from services.pdf_service import extract_slides
 from tests.fakes import make_fake_call_model
 
@@ -15,7 +15,7 @@ PAGE = str(ROOT / "pages" / "4_Roast_Report.py")
 
 def build_report(monkeypatch, **kw):
     monkeypatch.setattr(report_service, "get_api_key", lambda: "test-key")
-    monkeypatch.setattr(gemini_service, "_call_model", make_fake_call_model(**kw))
+    monkeypatch.setattr(groq_service, "_call_model", make_fake_call_model(**kw))
     extraction = extract_slides((ROOT / "assets" / "sample_deck_v1.pdf").read_bytes())
     return report_service.run_analysis("Campus Barter", "", "Hackathon Judges", "deck.pdf", extraction)
 
@@ -108,7 +108,7 @@ def test_slide_fixer_uses_selected_text_and_keeps_rewrite_across_reruns(monkeypa
             "evidence_to_add": ["Add a verified example of an exchange."],
         })
 
-    monkeypatch.setattr(gemini_service, "_call_model", fake_fix)
+    monkeypatch.setattr(groq_service, "_call_model", fake_fix)
     at = render(report)
     assert at.selectbox(key="fixer_slide_number").value is None
     at.selectbox(key="fixer_slide_number").set_value(1).run()
@@ -141,12 +141,12 @@ def test_slide_fixer_uses_selected_text_and_keeps_rewrite_across_reruns(monkeypa
 def test_rewrite_rejects_changed_number_or_unit(monkeypatch):
     report = build_report(monkeypatch)
     report["slides"][1]["text"] = "Latency improved to 30 ms."
-    monkeypatch.setattr(gemini_service, "_call_model", lambda *_: json.dumps({
+    monkeypatch.setattr(groq_service, "_call_model", lambda *_: json.dumps({
         "title": "Latency", "body": "Improved to 30 kg.", "changes": [], "evidence_to_add": [],
     }))
     try:
-        gemini_service.generate_slide_fix(report, 2, style="Persuasive", judge_key="professor")
-    except GeminiError as error:
+        groq_service.generate_slide_fix(report, 2, style="Persuasive", judge_key="professor")
+    except GroqError as error:
         assert error.kind == "changed_numbers"
     else:
         raise AssertionError("Changed unit accepted")
@@ -156,13 +156,13 @@ def test_slide_fixer_failure_keeps_report_available(monkeypatch):
     report = build_report(monkeypatch)
 
     def fail_fix(*args):
-        raise GeminiError("quota", "Gemini quota reached.")
+        raise GroqError("quota", "Groq quota reached.")
 
-    monkeypatch.setattr(gemini_service, "_call_model", fail_fix)
+    monkeypatch.setattr(groq_service, "_call_model", fail_fix)
     at = render(report)
     at.selectbox(key="fixer_slide_number").set_value(2).run()
     at.button(key="generate_slide_fix").click().run()
     assert not at.exception
-    assert at.error[0].value == "Gemini quota reached."
+    assert at.error[0].value == "Groq quota reached."
     assert "AI Review" in all_html(at) and not any("slide-download-text" in node.proto.body for node in at.get("html"))
 

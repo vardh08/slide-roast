@@ -6,7 +6,7 @@ import pymupdf as fitz
 import pytest
 from PIL import Image, ImageChops
 
-from services import gemini_service, slide_renderer
+from services import groq_service, slide_renderer
 from services.pdf_service import extract_slides, preview_deck, read_slide_source, render_page_png
 from services.slide_redesign import comparable_metrics, detect_theme, fallback_plan, plan_redesign, source_content
 from services.slide_renderer import SlideRenderError, render_design
@@ -151,7 +151,7 @@ def test_invalid_model_plan_falls_back_and_does_not_omit_content(monkeypatch):
     content, theme = prepare(pdf)
     invalid = fallback_plan(content)
     invalid.options[1].order = [0, 2, 99]
-    monkeypatch.setattr(gemini_service, "_call_model", lambda *args: invalid.model_dump_json())
+    monkeypatch.setattr(groq_service, "_call_model", lambda *args: invalid.model_dump_json())
     plan, warning = plan_redesign(content, theme, "Investors")
     assert "unsupported design plan" in warning
     assert plan.options[1].order == [0, 1, 2]

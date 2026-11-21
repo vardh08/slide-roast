@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from services import gemini_service, report_service
-from services.gemini_service import GeminiError
+from services import groq_service, report_service
+from services.groq_service import GroqError
 from services.pdf_service import extract_slides
 from tests.fakes import make_fake_call_model
 
@@ -22,7 +22,7 @@ def fake_key(monkeypatch):
 
 
 def run(monkeypatch, extraction, **kw):
-    monkeypatch.setattr(gemini_service, "_call_model", make_fake_call_model(**kw))
+    monkeypatch.setattr(groq_service, "_call_model", make_fake_call_model(**kw))
     msgs = []
     r = report_service.run_analysis("Campus Barter", "", "Hackathon Judges", "deck.pdf", extraction, progress=msgs.append)
     return r, msgs
@@ -71,6 +71,6 @@ def test_summary_failure_falls_back_to_real_judge_data(monkeypatch, extraction):
 
 def test_missing_key_raises(monkeypatch, extraction):
     monkeypatch.setattr(report_service, "get_api_key", lambda: None)
-    with pytest.raises(GeminiError) as e:
+    with pytest.raises(GroqError) as e:
         report_service.run_analysis("P", "", "Hackathon Judges", "d.pdf", extraction)
     assert e.value.kind == "missing_key"

@@ -1,4 +1,4 @@
-"""Fake Gemini responses for tests. These are TEST DATA only; the app never uses them."""
+"""Fake Groq responses for tests. These are TEST DATA only; the app never uses them."""
 import json
 
 
@@ -48,8 +48,8 @@ def fake_summary_json(slide_count: int = 7) -> str:
 
 
 def make_fake_call_model(scores=None, fail_judges=(), fail_summary=False, bad_slide=None):
-    """Returns a replacement for gemini_service._call_model. Decides what to answer from the system prompt."""
-    from services.gemini_service import GeminiError
+    """Returns a replacement for groq_service._call_model. Decides what to answer from the system prompt."""
+    from services.groq_service import GroqError
 
     scores = scores or {"investor": 50, "professor": 62, "customer": 74}
 
@@ -57,10 +57,10 @@ def make_fake_call_model(scores=None, fail_judges=(), fail_summary=False, bad_sl
         for key in ("investor", "professor", "customer"):
             if f'Your judge key is "{key}"' in system_prompt:
                 if key in fail_judges:
-                    raise GeminiError("server", "Gemini is temporarily overloaded.")
+                    raise GroqError("server", "Groq is temporarily overloaded.")
                 return fake_judge_json(key, scores[key], bad_slide=bad_slide)
         if fail_summary:
-            raise GeminiError("server", "Gemini is temporarily overloaded.")
+            raise GroqError("server", "Groq is temporarily overloaded.")
         return fake_summary_json()
 
     return fake

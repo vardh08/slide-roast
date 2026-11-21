@@ -1,8 +1,8 @@
-"""Pydantic models = the exact JSON shapes we expect back from Gemini.
+"""Pydantic models = the exact JSON shapes we expect back from Groq.
 
 Pydantic does two jobs for us:
-1. `Model.model_json_schema()` tells Gemini what JSON to produce.
-2. `Model.model_validate_json(text)` checks Gemini's answer. Scores outside 0-100,
+1. `Model.model_json_schema()` tells Groq what JSON to produce.
+2. `Model.model_validate_json(text)` checks Groq's answer. Scores outside 0-100,
    wrong types or missing fields raise a ValidationError, which we handle.
 """
 from typing import Annotated, Literal

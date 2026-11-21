@@ -1,8 +1,8 @@
-﻿"""Text-only slide improvement UI."""
+"""Text-only slide improvement UI."""
 import streamlit as st
 
 from prompts.judges import JUDGES
-from services.gemini_service import GeminiError, REWRITE_STYLES, generate_slide_fix
+from services.groq_service import GroqError, REWRITE_STYLES, generate_slide_fix
 
 
 def _remember_edit(entry: dict, key: str) -> None:
@@ -64,7 +64,7 @@ def render_slide_fixer(report: dict) -> None:
             entry = {**fix, "generated": generated, "edited": generated}
             fixes[str(number)] = entry
             st.session_state[editor_key] = generated
-        except GeminiError as exc:
+        except GroqError as exc:
             st.error(exc.user_message)
 
     with st.container(key="slide_rewrite_panel"):

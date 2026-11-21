@@ -13,8 +13,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 from prompts.judges import JUDGES
-from services import gemini_service, scoring_service
-from services.gemini_service import GeminiError
+from services import groq_service, scoring_service
+from services.groq_service import GroqError
 from utils.helpers import get_api_key
 
 SEVERITY_RANK = {"low": 1, "medium": 2, "high": 3}
@@ -96,12 +96,12 @@ def run_analysis(
     """Run the full analysis. `progress(message)` is called from the main thread so Streamlit can show updates.
 
     Pass a judge key to run only that judge. Omit it to retain the panel behavior for existing callers.
-    Raises GeminiError ONLY for problems that make the whole run pointless (e.g. no API key).
+    Raises GroqError ONLY for problems that make the whole run pointless (e.g. no API key).
     """
     if judge_key is not None and judge_key not in JUDGES:
         raise ValueError(f"Unknown judge: {judge_key}")
     if not get_api_key():
-        raise GeminiError("missing_key", "No Gemini API key found. Add GEMINI_API_KEY to your .env file.")
+        raise GroqError("missing_key", "No Groq API key found. Add GROQ_API_KEY to your .env file or Streamlit Secrets.")
 
     notify = progress or (lambda message: None)
     slides = extraction["slides"]
@@ -112,7 +112,7 @@ def run_analysis(
     notify(f"{JUDGES[judge_key]['name']} is reading your deck…" if judge_key else "The judges are reading your deck…")
     with ThreadPoolExecutor(max_workers=len(judge_keys)) as pool:
         futures = {
-            pool.submit(gemini_service.run_judge, key, project_name, description, audience, slides): key
+            pool.submit(groq_service.run_judge, key, project_name, description, audience, slides): key
             for key in judge_keys
         }
         for future in as_completed(futures):
@@ -121,7 +121,7 @@ def run_analysis(
             try:
                 judges[key] = future.result()
                 notify(f"✅ {name} has finished.")
-            except GeminiError as exc:
+            except GroqError as exc:
                 judge_errors[key] = exc.user_message
                 notify(f"⚠️ {name} failed: {exc.user_message}")
             except Exception:  # never leak a stack trace
@@ -158,8 +158,8 @@ def run_analysis(
     notify("Preparing the AI review and improvement ideas…")
     summary = None
     try:
-        summary = gemini_service.generate_summary(project_name, audience, slides, succeeded)
-    except GeminiError as exc:
+        summary = groq_service.generate_summary(project_name, audience, slides, succeeded)
+    except GroqError as exc:
         report["summary_error"] = exc.user_message
     except Exception:
         report["summary_error"] = "The summary step failed unexpectedly."

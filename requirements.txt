@@ -1,8 +1,8 @@
 streamlit>=1.57
 pymupdf>=1.24
-google-genai>=1.0
 plotly>=5.20
 pandas>=2.0
 pillow>=10.0
 pydantic>=2.0
 python-dotenv>=1.0
+groq

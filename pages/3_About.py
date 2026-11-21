@@ -1,4 +1,4 @@
-﻿"""About the evaluation workflow and its limits."""
+"""About the evaluation workflow and its limits."""
 import streamlit as st
 
 st.title("About Slide Roast")
@@ -10,6 +10,6 @@ st.html("""
 </div>
 """)
 st.subheader("Privacy and scope")
-st.write("PDFs are processed in memory. Google’s Gemini API receives extracted text for review and for rewrites you request. Reports and edits stay in the current Streamlit session.")
+st.write("PDFs are processed in memory. Google’s Groq API receives extracted text for review and for rewrites you request. Reports and edits stay in the current Streamlit session.")
 if st.button("Upload a deck", type="primary"):
     st.switch_page("pages/1_Upload.py")

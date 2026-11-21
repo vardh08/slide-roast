@@ -2,7 +2,7 @@
 import streamlit as st
 
 from prompts.judges import JUDGES
-from services.gemini_service import GeminiError
+from services.groq_service import GroqError
 from services.pdf_service import extract_slides
 from services.report_service import run_analysis
 from utils.helpers import AUDIENCES, MAX_FILE_MB, MAX_PAGES, get_api_key
@@ -26,8 +26,8 @@ def render_upload(*, standalone: bool = False) -> None:
 
     if not get_api_key():
         st.warning(
-            "No Gemini API key found. You can upload and preview extraction, but AI judging needs a key. "
-            "Copy `.env.example` to `.env` and add `GEMINI_API_KEY`."
+            "No Groq API key found. You can upload and preview extraction, but AI judging needs a key. "
+            "Set `GROQ_API_KEY` in your `.env` file or Streamlit Secrets."
         )
 
     left, right = st.columns([0.9, 1.1], gap="medium")
@@ -125,7 +125,7 @@ def render_upload(*, standalone: bool = False) -> None:
                         status.update(label="The selected judge could not finish", state="error")
                     else:
                         status.update(label="Review complete", state="complete")
-            except GeminiError as exc:
+            except GroqError as exc:
                 st.error(exc.user_message)
                 report = None
 

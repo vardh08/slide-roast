@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from services import gemini_service, report_service
+from services import groq_service, report_service
 from tests.fakes import make_fake_call_model
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -51,7 +51,7 @@ def test_upload_requires_project_name_before_submission():
 def test_start_without_key_shows_friendly_error(monkeypatch):
     at = start(monkeypatch, None)
     assert not at.exception
-    assert any("No Gemini API key" in e.value for e in at.error)
+    assert any("No Groq API key" in e.value for e in at.error)
 
 
 def test_start_uses_only_selected_judge_and_generates_ai_review(monkeypatch):
@@ -62,7 +62,7 @@ def test_start_uses_only_selected_judge_and_generates_ai_review(monkeypatch):
         calls.append(schema["title"])
         return fake_model(system_prompt, user_prompt, schema)
 
-    monkeypatch.setattr(gemini_service, "_call_model", track_calls)
+    monkeypatch.setattr(groq_service, "_call_model", track_calls)
     at = start(monkeypatch, "test-key")
     assert not at.exception
     report = at.session_state["report"]
@@ -79,7 +79,7 @@ def test_start_uses_only_selected_judge_and_generates_ai_review(monkeypatch):
 
 
 def test_start_when_selected_judge_fails_shows_error(monkeypatch):
-    monkeypatch.setattr(gemini_service, "_call_model", make_fake_call_model(fail_judges=("customer",)))
+    monkeypatch.setattr(groq_service, "_call_model", make_fake_call_model(fail_judges=("customer",)))
     at = start(monkeypatch, "test-key")
     assert not at.exception
     assert len(at.error) == 1 and "Confused Customer" in at.error[0].value
@@ -97,7 +97,7 @@ def test_sticky_nav_does_not_wrap_the_hero():
 @pytest.mark.parametrize("judge", ["investor", "professor", "customer"])
 def test_landing_upload_can_reopen_report_from_history(monkeypatch, judge):
     monkeypatch.setattr(report_service, "get_api_key", lambda: "test-key")
-    monkeypatch.setattr(gemini_service, "_call_model", make_fake_call_model())
+    monkeypatch.setattr(groq_service, "_call_model", make_fake_call_model())
     at = AppTest.from_file(APP).run()
     assert any("tough love." in str(node.proto) for node in at.get("html"))
     at.file_uploader[0].set_value(("deck.pdf", (ROOT / "assets/sample_deck_v1.pdf").read_bytes(), "application/pdf"))

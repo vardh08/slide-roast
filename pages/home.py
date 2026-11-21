@@ -1,4 +1,4 @@
-﻿"""Product landing page with the live deck upload form."""
+"""Product landing page with the live deck upload form."""
 import streamlit as st
 
 from utils.styles import icon, score_markup
@@ -117,7 +117,7 @@ st.html("""
   <div><a class="wordmark" href="#home">slide roast<span>.</span></a><p>Better pitches start with better feedback.</p></div>
   <div class="footer-links"><a href="#home">Home</a><a href="#judges">Meet the Judges</a><a href="#how-it-works">How It Works</a>
   <a href="#upload">Upload Deck</a><a href="#privacy">Privacy</a></div>
-  <p class="privacy-line">PDFs are processed in memory. Gemini receives extracted text for review and for slide rewrites you request. Reports stay in the current session.</p>
+  <p class="privacy-line">PDFs are processed in memory. Groq receives extracted text for review and for slide rewrites you request. Reports stay in the current session.</p>
   <p class="privacy-line">© 2026 Slide Roast.</p>
 </div>
 """)

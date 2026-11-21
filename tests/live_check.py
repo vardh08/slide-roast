@@ -1,14 +1,14 @@
-"""LIVE check against the real Gemini API (uses your key from .env, never prints it).
+"""LIVE check against the real Groq API (uses your key from .env, never prints it).
 
 Run from the project folder:
     python -m tests.live_check
 
 It runs the full pipeline on assets/sample_deck_v1.pdf and prints what really came back.
-This uses a little of your free quota (4 API calls).
+This sends the sample deck's extracted text to Groq for one judge and one summary.
 """
 from pathlib import Path
 
-from services.gemini_service import GeminiError
+from services.groq_service import GroqError
 from services.pdf_service import extract_slides
 from services.report_service import run_analysis
 
@@ -17,12 +17,13 @@ DECK = Path(__file__).resolve().parent.parent / "assets" / "sample_deck_v1.pdf"
 
 def main():
     extraction = extract_slides(DECK.read_bytes())
-    print(f"Extracted {extraction['page_count']} slides. Calling Gemini...\n")
+    print(f"Extracted {extraction['page_count']} slides. Calling Groq...\n")
     try:
         report = run_analysis(
-            "Campus Barter", "", "Hackathon Judges", DECK.name, extraction, progress=lambda m: print("  ", m)
+            "Campus Barter", "", "Hackathon Judges", DECK.name, extraction,
+            progress=lambda m: print("  ", m), judge_key="professor",
         )
-    except GeminiError as exc:
+    except GroqError as exc:
         print("\nFAILED:", exc.kind, "-", exc.user_message)
         return
 
